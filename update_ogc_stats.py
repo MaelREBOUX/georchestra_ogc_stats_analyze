@@ -33,6 +33,10 @@ def DailyUpdate():
   # avec un regroupement org / username / service / request / layer / role
   # + count pour chaque cas
 
+  # trouver la table à attaquer
+  ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + DateToTreat[5:7]
+  print (ogc_table)
+
   SQLinsert = """INSERT INTO ogcstatistics.ogc_services_stats_daily
   (
     SELECT
@@ -45,7 +49,7 @@ def DailyUpdate():
       EXTRACT(YEAR FROM '""" + DateToTreat + """'::date)::integer AS year,
       CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)) AS weekyear,
       CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)) AS monthyear
-    FROM ogcstatistics.ogc_services_log_y2018m3
+    FROM ogcstatistics.""" + ogc_table + """
     WHERE date > '""" + DateToTreat + """'::date AND date < '""" + DateToTreat + """'::date
     GROUP BY org, user_name, service, request, layer, roles
   );"""
