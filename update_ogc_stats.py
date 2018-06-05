@@ -1,3 +1,4 @@
+# coding: utf8
 #-------------------------------------------------------------------------------
 # Name:        module1
 # Purpose:
@@ -9,42 +10,90 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-import time
+import sys
+import argparse
+from argparse import RawTextHelpFormatter
+from datetime import date, timedelta
 import psycopg2
 
 
+
+
+
 # les variables globales
-today=time.strftime("%Y-%m-%d") # donne la date du jour
+siteid = 0
+DateToTreat = ""
 
 
-def test():
 
-    SQLinsert = """INSERT INTO ogcstatistics.ogc_services_stats_daily
-    (
-      SELECT
-        1 AS siteid,
-        '{}'::date-1 AS date,
-        org, user_name, service, request, layer,
-        COUNT(*) AS count,
-        EXTRACT(WEEK FROM '""" + today + """'::date-1)::integer AS week,
-        EXTRACT(MONTH FROM '{}'::date-1)::integer AS month,
-        EXTRACT(YEAR FROM '{}'::date-1)::integer AS year,
-        CONCAT(EXTRACT(YEAR FROM '{}'::date-1), '-', EXTRACT(WEEK FROM '{}'::date-1)) AS weekyear,
-        CONCAT(EXTRACT(YEAR FROM '{}'::date-1), '-', EXTRACT(MONTH FROM '{}'::date-1)) AS monthyear
-      FROM ogcstatistics.ogc_services_log_y2018m3
-      WHERE date > '{}'::date-1 AND date < '{}'::date
-      GROUP BY org, user_name, service, request, layer, roles
-    );"""
+def DailyUpdate():
 
-    print(SQLinsert)
+  # on va lire la table  ogc_services_log_y[YYY]m[M]  qui correspond à la date demandée
+  # on va y sélectionner les enregistrements correspondants
+  # avec un regroupement org / username / service / request / layer / role
+  # + count pour chaque cas
 
+  SQLinsert = """INSERT INTO ogcstatistics.ogc_services_stats_daily
+  (
+    SELECT
+      1 AS siteid,
+      '""" + DateToTreat + """'::date AS date,
+      org, user_name, service, request, layer,
+      COUNT(*) AS count,
+      EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)::integer AS week,
+      EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)::integer AS month,
+      EXTRACT(YEAR FROM '""" + DateToTreat + """'::date)::integer AS year,
+      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)) AS weekyear,
+      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)) AS monthyear
+    FROM ogcstatistics.ogc_services_log_y2018m3
+    WHERE date > '""" + DateToTreat + """'::date AND date < '""" + DateToTreat + """'::date
+    GROUP BY org, user_name, service, request, layer, roles
+  );"""
+
+  print(SQLinsert)
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 def main():
 
-    test()
+  parser = argparse.ArgumentParser(description="""Ce script blablabla [TODO]""", formatter_class=RawTextHelpFormatter)
 
-    pass
+  # identifiant du site à traiter
+  # obligatoire
+  #parser.add_argument("site", help="""Identifiant du site à traiter.""")
+
+  # date
+  # Par défaut= date du jour -1 si pas spécifié
+  # optionnel
+  #parser.add_argument("site", help="""Identifiant du site à traiter.""")
+
+
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  # l'identifiant du site à traiter
+  global siteid
+  global DateToTreat
+
+  # debug
+  siteid = 1
+
+  # la date
+  # si rien => date du jour -1 = hier
+  yesterday = date.today() - timedelta(1)
+  DateToTreat =  yesterday.strftime('%Y-%m-%d')
+
+  # sinon : prendre la date passée et vérifier la syntaxe
+
+  # for debug
+  print( "date to query : " + DateToTreat)
+
+  DailyUpdate()
+
+
+
+  pass
 
 if __name__ == '__main__':
     main()
