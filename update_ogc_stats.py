@@ -34,6 +34,7 @@ def DailyUpdate():
   # on va lire la table  ogc_services_log_y[YYY]m[M]  qui correspond à la date demandée
   # on va y sélectionner les enregistrements correspondants
   # avec un regroupement org / username / service / request / layer / role
+  # tout en supprimant les enregistrements créés par par des comptes liés au monitoring des services
   # + count pour chaque cas
 
   # trouver la table à attaquer
@@ -127,6 +128,10 @@ def main():
   # si rien => date du jour -1 = hier
   yesterday = date.today() - timedelta(1)
   DateToTreat = yesterday.strftime('%Y-%m-%d')
+
+  # for debug
+  DateToTreat = "2018-03-05"
+
   ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
   nextday = ConvDateToTreat + timedelta(1)
   DateToFollow = nextday.strftime('%Y-%m-%d')
@@ -137,9 +142,7 @@ def main():
   # sinon : prendre la date passée et vérifier la syntaxe
   # TODO
 
-  # for debug
-  DateToTreat = "2018-03-05"
-  DateToFollow = "2018-03-06"
+
 
   # for debug
   print( "date to query : " + DateToTreat)
