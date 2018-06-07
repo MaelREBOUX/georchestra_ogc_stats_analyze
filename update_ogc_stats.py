@@ -19,7 +19,7 @@ import re
 
 
 # la base de données
-strConnDB = "host='localhost' dbname='georchestra' user='www-data' password='www-data'"
+strConnDB = "host='VDR205769' dbname='georchestra' user='www-data' password='www-data'"
 
 
 # les variables globales
@@ -39,8 +39,9 @@ def DailyUpdate():
 
   # trouver la table à attaquer
   ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
-  print (ogc_table)
+  print ( "la table à traiter est : " + ogc_table)
 
+  # on crée les 2 requêtes SQL à jouer
   SQLinsert = """INSERT INTO ogcstatistics_analyze.ogc_services_stats_daily
   (
     SELECT
@@ -58,14 +59,13 @@ def DailyUpdate():
     AND user_name NOT IN ('acces.sig', 'admsig', 'c2c-monitoring', 'geoserver_privileged_user', 'intranet', 'ldapsig')
     GROUP BY org, user_name, service, request, layer, roles
   );"""
-
-  print(SQLinsert)
+  #print(SQLinsert)
 
   SQLVerif = """SELECT COUNT(*) AS count
   FROM ogcstatistics_analyze.ogc_services_stats_daily
   WHERE date ='""" + DateToTreat + """'::date"""
+  #print(SQLVerif)
 
-  print(SQLVerif)
 
   # connection à la base
   try:
@@ -74,24 +74,21 @@ def DailyUpdate():
     cursor = conn.cursor()
 
   except:
-    print( "connexion impossible")
+    print( "connexion à la base impossible")
 
   try:
-
     # on lance la requêt INSERT
     cursor.execute(SQLinsert)
     conn.commit()
 
-    # puis on lance la requête pour vérifier le nb d'enregistrements créé
+    # puis on lance la requête pour vérifier le nb d'enregistrements créés
     cursor.execute(SQLVerif)
     result = cursor.fetchone()
     NbRecordsInserted = result[0]
-    print( str(NbRecordsInserted) )
+    print( "nombre d'enregistrements traités : " + str(NbRecordsInserted) )
 
     cursor.close()
     conn.close()
-
-    # contrôle ?
 
   except:
     print( "impossible d'exécuter la requête")
@@ -132,25 +129,21 @@ def main():
   # for debug
   DateToTreat = "2018-03-05"
 
+  # on déduit la date du jour
   ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
   nextday = ConvDateToTreat + timedelta(1)
   DateToFollow = nextday.strftime('%Y-%m-%d')
-
-  #tomorrow =  date.today()
-  #DateToFollow = tomorrow.strftime('%Y-%m-%d')
-
-  # sinon : prendre la date passée et vérifier la syntaxe
-  # TODO
-
-
 
   # for debug
   print( "date to query : " + DateToTreat)
   print( "date wich follow : " + DateToFollow )
 
+  # et on lance le traitement des logs pour le jour demandé
   DailyUpdate()
 
 
+  print( "")
+  print( "  F I N")
 
   pass
 
