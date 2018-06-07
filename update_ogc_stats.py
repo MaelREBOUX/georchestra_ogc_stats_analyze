@@ -13,7 +13,7 @@
 import sys
 import argparse
 from argparse import RawTextHelpFormatter
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import psycopg2
 import re
 
@@ -27,13 +27,6 @@ siteid = 0
 DateToTreat = ""
 DateToFollow = ""
 
-
-def DeleteMonitoringRecords():
-
-  # pour la date donnée : va supprimer tous les enregistrements créés par des comptes liés au monitoring des services
-  # TODO
-
-  print()
 
 
 def DailyUpdate():
@@ -61,6 +54,7 @@ def DailyUpdate():
       CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)) AS monthyear
     FROM ogcstatistics.""" + ogc_table + """
     WHERE date > '""" + DateToTreat + """'::date AND date < '""" + DateToFollow + """'::date
+    AND user_name NOT IN ('acces.sig', 'admsig', 'c2c-monitoring', 'geoserver_privileged_user', 'intranet', 'ldapsig')
     GROUP BY org, user_name, service, request, layer, roles
   );"""
 
@@ -133,8 +127,12 @@ def main():
   # si rien => date du jour -1 = hier
   yesterday = date.today() - timedelta(1)
   DateToTreat = yesterday.strftime('%Y-%m-%d')
-  tomorrow =  date.today()
-  DateToFollow = tomorrow.strftime('%Y-%m-%d')
+  ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
+  nextday = ConvDateToTreat + timedelta(1)
+  DateToFollow = nextday.strftime('%Y-%m-%d')
+
+  #tomorrow =  date.today()
+  #DateToFollow = tomorrow.strftime('%Y-%m-%d')
 
   # sinon : prendre la date passée et vérifier la syntaxe
   # TODO
