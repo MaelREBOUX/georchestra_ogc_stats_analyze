@@ -104,13 +104,33 @@ def WeeklyUpdate():
   # on va faire une requête sur la table daily dans laquelle on vient d'insérer des lignes
   # avant d"insérer on va supprimer les données de la semaine courante
   # car ce script peut être exécuté chaque jour de la semaine
-  # on préféère un delete et insert plutôt que de chercher à incrémenter des compteurs
+  # on préfère un delete et insert plutôt que de chercher à incrémenter des compteurs
 
-  # on commence par déterminer la semaine courante depuis la date à traiter
+  # on commence par déterminer la semaine courante depuis la date à traiter                     re.sub('^0+', '', DateToTreat[5:7])
   global WeekYear
-  WeekYear = datetime.date(DateToTreat[0:4], DateToTreat[6:8], DateToTreat[10:12]).isocalendar()[1]
 
+  # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
+  WeekYear = date(int(DateToTreat[0:4]) , int(re.sub('^0+', '', DateToTreat[5:7])), int(re.sub('^0+', '', DateToTreat[8:10]))).isocalendar()[1]
   print( WeekYear)
+
+  #on vide la table de la semaine courante avant d'insérer des enregistrements
+
+  SQLdeleteW = """DELETE * FROM ogcstatistics_analyze.ogc_services_stats_weekly
+      WHERE weekyear = '""" + WeekYear +"""' """
+
+
+  # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
+  SQLinsertW = """INSERT INTO ogcstatistics.ogc_services_stats_weekly
+(
+  SELECT
+    1 AS siteid,
+    org, user_name, service, request, layer,
+    SUM(count) AS count,
+    week, month, year, weekyear, monthyear
+  FROM ogcstatistics.ogc_services_stats_daily
+  WHERE weekyear = '""" + WeekYear + """'
+  GROUP BY org, user_name, service, request, layer, week, month, year, weekyear, monthyear
+  );
 
 
 
@@ -216,8 +236,8 @@ def main():
   print( "date wich follow : " + DateToFollow )
 
   # et on lance le traitement des logs pour le jour demandé
-  DailyUpdate()
-
+  #DailyUpdate()
+  WeeklyUpdate()
 
   print( "")
   print( "  F I N")
