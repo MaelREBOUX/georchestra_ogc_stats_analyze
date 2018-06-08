@@ -24,9 +24,10 @@ strConnDB = "host='VDR205769' dbname='georchestra' user='www-data' password='www
 
 # les variables globales
 siteid = 0
+DateArg = ""
 DateToTreat = ""
 DateToFollow = ""
-Datearg = ""
+WeekYear = ""
 
 
 
@@ -93,6 +94,25 @@ def DailyUpdate():
 
   except:
     print( "impossible d'exécuter la requête")
+
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def WeeklyUpdate():
+
+  # on va faire une requête sur la table daily dans laquelle on vient d'insérer des lignes
+  # avant d"insérer on va supprimer les données de la semaine courante
+  # car ce script peut être exécuté chaque jour de la semaine
+  # on préféère un delete et insert plutôt que de chercher à incrémenter des compteurs
+
+  # on commence par déterminer la semaine courante depuis la date à traiter
+  global WeekYear
+  WeekYear = datetime.date(DateToTreat[0:4], DateToTreat[6:8], DateToTreat[10:12]).isocalendar()[1]
+
+  print( WeekYear)
+
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
