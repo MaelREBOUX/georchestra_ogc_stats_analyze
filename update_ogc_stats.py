@@ -111,14 +111,15 @@ def WeeklyUpdate():
 
   # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
   WeekYear = date(int(DateToTreat[0:4]) , int(re.sub('^0+', '', DateToTreat[5:7])), int(re.sub('^0+', '', DateToTreat[8:10]))).isocalendar()[1]
+  WeekYear = str(WeekYear)
   print( WeekYear)
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
   SQLdeleteW = """DELETE * FROM ogcstatistics_analyze.ogc_services_stats_weekly
-      WHERE weekyear = '""" + WeekYear +"""' """
+      WHERE weekyear = '""" + WeekYear +"""'; """
 
-
+  print(SQLdeleteW)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
   SQLinsertW = """INSERT INTO ogcstatistics.ogc_services_stats_weekly
 (
@@ -130,9 +131,9 @@ def WeeklyUpdate():
   FROM ogcstatistics.ogc_services_stats_daily
   WHERE weekyear = '""" + WeekYear + """'
   GROUP BY org, user_name, service, request, layer, week, month, year, weekyear, monthyear
-  );
+  );"""
 
-
+  print(SQLinsertW)
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
