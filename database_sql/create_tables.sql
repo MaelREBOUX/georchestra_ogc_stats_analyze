@@ -28,7 +28,8 @@ CREATE TABLE ogcstatistics.ogc_services_stats_daily
   month integer,
   year integer,
   weekyear character varying(10),
-  monthyear character varying(10)
+  monthyear character varying(10),
+  CONSTRAINT ogc_services_stats_daily_pk PRIMARY KEY (siteid, date, org, user_name, service, request, layer)
 );
 
 
@@ -66,7 +67,8 @@ CREATE TABLE ogcstatistics.ogc_services_stats_weekly
   month integer,
   year integer,
   weekyear character varying(10),
-  monthyear character varying(10)
+  monthyear character varying(10),
+  CONSTRAINT ogc_services_stats_weekly_pk PRIMARY KEY (siteid, weekyear, org, user_name, service, request, layer)
 );
 
 
@@ -100,7 +102,8 @@ CREATE TABLE ogcstatistics.ogc_services_stats_monthly
   count bigint,
   month integer,
   year integer,
-  monthyear character varying(10)
+  monthyear character varying(10),
+  CONSTRAINT ogc_services_stats_monthly_pk PRIMARY KEY (siteid, monthyear, org, user_name, service, request, layer)
 );
 
 
