@@ -26,6 +26,7 @@ strConnDB = "host='VDR205769' dbname='georchestra' user='www-data' password='www
 siteid = 0
 DateToTreat = ""
 DateToFollow = ""
+Datearg = ""
 
 
 
@@ -98,28 +99,104 @@ def DailyUpdate():
 
 def main():
 
-  parser = argparse.ArgumentParser(description="""Ce script blablabla [TODO]""", formatter_class=RawTextHelpFormatter)
+  # passage en variables globales
+  global siteid
+  global DateToTreat
+  global DateToFollow
+  global Datearg
+  global strConnDB
+
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  parser = argparse.ArgumentParser(description="""
+
+  Ce script blablabla [TODO]
+
+  Si aucune date n'est fournie alors ce sera la date du jour qui sera prise en compte.
+  Concrètement : les logs de la veille.
+
+  Exemple : update_ogc_stats.py -site 1 -date 2018-05-28""", formatter_class=RawTextHelpFormatter)
 
   # identifiant du site à traiter
   # obligatoire
-  #parser.add_argument("site", help="""Identifiant du site à traiter.""")
+  parser.add_argument("-site", help="""Identifiant du site à traiter (obligatoire).""")
 
   # date
   # Par défaut= date du jour -1 si pas spécifié
   # optionnel
-  #parser.add_argument("site", help="""Identifiant du site à traiter.""")
+  parser.add_argument("-date", help="""Date à traiter au format 'YYYY-MM-DD' (optionnel)""")
 
+  # debug
+  #print( 'Number of arguments:', len(sys.argv), 'arguments.' )
+  #print( 'Argument List:', str(sys.argv) )
+
+  # test surt le nb d'arguments passés. On attend 3 au minimum
+  if (len(sys.argv) < 3) :
+    print("\n Erreur : pas assez d'arguments\n")
+    parser.print_help()
+    sys.exit()
+
+  # on récupère les arguments passés
+  args = parser.parse_args(sys.argv[1:])
+
+  # on fait des tests
+  # sur le site
+  if sys.argv[1] != "-site" :
+    print("\n Erreur : identifiant de site obligatoire\n")
+    parser.print_help()
+    sys.exit()
+  else:
+    # on mémorise le siteid
+    siteid = str(sys.argv[2])
+    # tester la valeur passée
+    print( "TODO : tester la valeur site" )
+
+  # la date si fournie
+  # test si un argument date a été fourni
+  if (len(sys.argv) == 5) :
+    Datearg = str(sys.argv[4])
+    print(Datearg)
+    sys.exit()
+  else:
+    print("Non")
+
+  sys.exit()
+
+    # on teste le format de date rentrée
+  if str(sys.argv[4]) == Datearg.strftime('%Y-%m-%d') :
+      print("format de date ok")
+      DateToTreat = str(sys.argv[4])
+
+  else :
+      print("Mauvais format de date")
+      sys.exit()
+
+  # on mémorise la date
+  DateToTreat = str(sys.argv[4])
+    # tester la valeur passée
+  print( "TODO : tester la valeur date" )
+
+
+  sys.exit()
+
+    # on mémorise le siteid
+    #dateArg = str(sys.argv[4])
+    # tester la valeur passée
+    #print( "TODO : tester la valeur date" )
+
+  #else:
+    #print("Date J-1")
+
+
+
+
+
+  # tout est OK : on peut traiter les logs
 
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  # l'identifiant du site à traiter
-  global siteid
-  global DateToTreat
-  global DateToFollow
-  global strConnDB
-
   # debug
-  siteid = 1
+  #siteid = 1
 
   # la date
   # si rien => date du jour -1 = hier
@@ -127,7 +204,7 @@ def main():
   DateToTreat = yesterday.strftime('%Y-%m-%d')
 
   # for debug
-  DateToTreat = "2018-03-05"
+  #DateToTreat = "2018-03-05"
 
   # on déduit la date du jour
   ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
