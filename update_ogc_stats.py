@@ -103,7 +103,7 @@ def main():
   global siteid
   global DateToTreat
   global DateToFollow
-  global Datearg
+  global DateArg
   global strConnDB
 
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -149,46 +149,36 @@ def main():
     # on mémorise le siteid
     siteid = str(sys.argv[2])
     # tester la valeur passée
-    print( "TODO : tester la valeur site" )
+    #print( "TODO : tester la valeur site" )
 
   # la date si fournie
   # test si un argument date a été fourni
   if (len(sys.argv) == 5) :
-    Datearg = str(sys.argv[4])
-    print(Datearg)
-    sys.exit()
-  else:
-    print("Non")
+    # on a quelquechose
+    DateArg = str(sys.argv[4])
+    # on force pur le moment, sans contrôler
+    DateToTreat = DateArg
 
-  sys.exit()
+    #print(Datearg)
 
     # on teste le format de date rentrée
-  if str(sys.argv[4]) == Datearg.strftime('%Y-%m-%d') :
-      print("format de date ok")
-      DateToTreat = str(sys.argv[4])
+    #if str(sys.argv[4]) == DateArg.strftime('%Y-%m-%d') :
+    #    print("format de date ok")
+    #    DateToTreat = str(sys.argv[4])
+    #else :
+    #    print("Mauvais format de date")
+    #    sys.exit()
 
-  else :
-      print("Mauvais format de date")
-      sys.exit()
-
-  # on mémorise la date
-  DateToTreat = str(sys.argv[4])
-    # tester la valeur passée
-  print( "TODO : tester la valeur date" )
-
-
-  sys.exit()
-
-    # on mémorise le siteid
-    #dateArg = str(sys.argv[4])
-    # tester la valeur passée
-    #print( "TODO : tester la valeur date" )
-
-  #else:
-    #print("Date J-1")
+  else:
+    # pas de date : donc on prend la date du jour courant par défaut
+    yesterday = date.today() - timedelta(1)
+    DateToTreat = yesterday.strftime('%Y-%m-%d')
 
 
-
+  # on déduit la date du jour suivant
+  ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
+  nextday = ConvDateToTreat + timedelta(1)
+  DateToFollow = nextday.strftime('%Y-%m-%d')
 
 
   # tout est OK : on peut traiter les logs
@@ -197,21 +187,11 @@ def main():
 
   # debug
   #siteid = 1
+  #DateToTreat = 2018-05-03
 
-  # la date
-  # si rien => date du jour -1 = hier
-  yesterday = date.today() - timedelta(1)
-  DateToTreat = yesterday.strftime('%Y-%m-%d')
 
   # for debug
-  #DateToTreat = "2018-03-05"
-
-  # on déduit la date du jour
-  ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
-  nextday = ConvDateToTreat + timedelta(1)
-  DateToFollow = nextday.strftime('%Y-%m-%d')
-
-  # for debug
+  print('\n')
   print( "date to query : " + DateToTreat)
   print( "date wich follow : " + DateToFollow )
 
