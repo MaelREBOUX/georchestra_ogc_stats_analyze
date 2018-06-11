@@ -19,7 +19,7 @@ import re
 
 
 # la base de données
-strConnDB = "host='VDR205769' dbname='georchestra' user='www-data' password='www-data'"
+strConnDB = "host='localhost' dbname='georchestra' user='www-data' password='www-data'"
 
 
 # les variables globales
@@ -111,29 +111,56 @@ def WeeklyUpdate():
 
   # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
   WeekYear = date(int(DateToTreat[0:4]) , int(re.sub('^0+', '', DateToTreat[5:7])), int(re.sub('^0+', '', DateToTreat[8:10]))).isocalendar()[1]
-  WeekYear = str(WeekYear)
+  WeekYear = DateToTreat[0:4] + '-' + str(WeekYear)
   print( WeekYear)
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteW = """DELETE * FROM ogcstatistics_analyze.ogc_services_stats_weekly
+  SQLdeleteW = """DELETE FROM ogcstatistics_analyze.ogc_services_stats_weekly
       WHERE weekyear = '""" + WeekYear +"""'; """
 
   print(SQLdeleteW)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
-  SQLinsertW = """INSERT INTO ogcstatistics.ogc_services_stats_weekly
+  SQLinsertW = """INSERT INTO ogcstatistics_analyze.ogc_services_stats_weekly
 (
   SELECT
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
     week, month, year, weekyear, monthyear
-  FROM ogcstatistics.ogc_services_stats_daily
+  FROM ogcstatistics_analyze.ogc_services_stats_daily
   WHERE weekyear = '""" + WeekYear + """'
   GROUP BY org, user_name, service, request, layer, week, month, year, weekyear, monthyear
   );"""
 
+
   print(SQLinsertW)
+
+
+   # connection à la base
+  try:
+    # connexion à la base, si plante, on sort
+    conn = psycopg2.connect(strConnDB)
+    cursor = conn.cursor()
+
+  except:
+    print( "connexion à la base impossible")
+
+  try:
+    # on lance la requêt DELETE
+    cursor.execute(SQLdeleteW)
+    conn.commit()
+
+    # puis on lance la requête qui insère
+    cursor.execute(SQLinsertW)
+    conn.commit()
+
+
+    cursor.close()
+    conn.close()
+
+  except:
+    print( "impossible d'exécuter la requête")
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -237,7 +264,7 @@ def main():
   print( "date wich follow : " + DateToFollow )
 
   # et on lance le traitement des logs pour le jour demandé
-  #DailyUpdate()
+  DailyUpdate()
   WeeklyUpdate()
 
   print( "")
