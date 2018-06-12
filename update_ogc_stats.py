@@ -59,7 +59,7 @@ def DailyUpdate():
     FROM ogcstatistics.""" + ogc_table + """
     WHERE date > '""" + DateToTreat + """'::date AND date < '""" + DateToFollow + """'::date
     AND user_name NOT IN ('acces.sig', 'admsig', 'c2c-monitoring', 'geoserver_privileged_user', 'intranet', 'ldapsig')
-    GROUP BY org, user_name, service, request, layer, roles
+    GROUP BY org, user_name, service, request, layer
   );"""
   #print(SQLinsert)
 
