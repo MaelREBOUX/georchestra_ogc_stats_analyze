@@ -68,6 +68,7 @@ def DailyUpdate():
   WHERE date ='""" + DateToTreat + """'::date"""
   #print(SQLVerif)
 
+  SQLVacuumD = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_daily """
 
   # connection à la base
   try:
@@ -88,6 +89,10 @@ def DailyUpdate():
     result = cursor.fetchone()
     NbRecordsInserted = result[0]
     print( "nombre d'enregistrements traités : " + str(NbRecordsInserted) )
+
+    # on vide l'espace de stockage occupé par les lignes supprimées
+    cursor.execute(SQLVacuumD)
+    conn.commit()
 
     cursor.close()
     conn.close()
@@ -133,6 +138,7 @@ def WeeklyUpdate():
   GROUP BY org, user_name, service, request, layer, week, month, year, weekyear, monthyear
   );"""
 
+  SQLVacuumW = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_weekly """
 
   print(SQLinsertW)
 
@@ -155,6 +161,79 @@ def WeeklyUpdate():
     cursor.execute(SQLinsertW)
     conn.commit()
 
+    # on vide l'espace de stockage occupé par les lignes supprimées
+    cursor.execute(SQLVacuumW)
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+  except:
+    print( "impossible d'exécuter la requête")
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def MonthlyUpdate():
+
+  # on va faire une requête sur la table daily dans laquelle on vient d'insérer des lignes
+  # avant d"insérer on va supprimer les données du mois courante
+  # car ce script peut être exécuté chaque jour de la semaine
+  # on préfère un delete et insert plutôt que de chercher à incrémenter des compteurs
+
+  # on commence par déterminer la semaine courante depuis la date à traiter                     re.sub('^0+', '', DateToTreat[5:7])
+  global MonthYear
+
+  # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
+  MonthYear = DateToTreat[0:4] + '-' + re.sub('^0+', '', DateToTreat[5:7])
+  print( MonthYear )
+
+  #on vide la table de la semaine courante avant d'insérer des enregistrements
+
+  SQLdeleteM = """DELETE FROM ogcstatistics_analyze.ogc_services_stats_monthly
+      WHERE monthyear = '""" + MonthYear +"""'; """
+
+  print(SQLdeleteM)
+  # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
+  SQLinsertM = """INSERT INTO ogcstatistics_analyze.ogc_services_stats_monthly
+(
+  SELECT
+    1 AS siteid,
+    org, user_name, service, request, layer,
+    SUM(count) AS count,
+    week, month, year, weekyear, monthyear
+  FROM ogcstatistics_analyze.ogc_services_stats_daily
+  WHERE monthyear = '""" + MonthYear + """'
+  GROUP BY org, user_name, service, request, layer, month, year, monthyear
+  );"""
+
+
+  print(SQLinsertM)
+
+  SQLVacuumM = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_monthly """
+
+
+   # connection à la base
+  try:
+    # connexion à la base, si plante, on sort
+    conn = psycopg2.connect(strConnDB)
+    cursor = conn.cursor()
+
+  except:
+    print( "connexion à la base impossible")
+
+  try:
+    # on lance la requêt DELETE
+    cursor.execute(SQLdeleteM)
+    conn.commit()
+
+    # puis on lance la requête qui insère
+    cursor.execute(SQLinsertM)
+    conn.commit()
+
+    # on vide l'espace de stockage occupé par les lignes supprimées
+    cursor.execute(SQLVacuumM)
+    conn.commit()
 
     cursor.close()
     conn.close()
@@ -266,6 +345,7 @@ def main():
   # et on lance le traitement des logs pour le jour demandé
   DailyUpdate()
   WeeklyUpdate()
+  MonthlyUpdate()
 
   print( "")
   print( "  F I N")
