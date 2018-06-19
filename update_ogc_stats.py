@@ -68,7 +68,7 @@ def DailyUpdate():
   WHERE date ='""" + DateToTreat + """'::date"""
   #print(SQLVerif)
 
-  SQLVacuumD = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_daily """
+  SQLVacuumD = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_daily; """
 
   # connection à la base
   try:
@@ -90,9 +90,6 @@ def DailyUpdate():
     NbRecordsInserted = result[0]
     print( "nombre d'enregistrements traités : " + str(NbRecordsInserted) )
 
-    # on vide l'espace de stockage occupé par les lignes supprimées
-    cursor.execute(SQLVacuumD)
-    conn.commit()
 
     cursor.close()
     conn.close()
@@ -132,13 +129,11 @@ def WeeklyUpdate():
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
-    week, month, year, weekyear, monthyear
+    week, year, weekyear
   FROM ogcstatistics_analyze.ogc_services_stats_daily
   WHERE weekyear = '""" + WeekYear + """'
-  GROUP BY org, user_name, service, request, layer, week, month, year, weekyear, monthyear
+  GROUP BY org, user_name, service, request, layer, week, year, weekyear
   );"""
-
-  SQLVacuumW = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_weekly """
 
   print(SQLinsertW)
 
@@ -161,10 +156,6 @@ def WeeklyUpdate():
     cursor.execute(SQLinsertW)
     conn.commit()
 
-    # on vide l'espace de stockage occupé par les lignes supprimées
-    cursor.execute(SQLVacuumW)
-    conn.commit()
-
     cursor.close()
     conn.close()
 
@@ -181,7 +172,7 @@ def MonthlyUpdate():
   # car ce script peut être exécuté chaque jour de la semaine
   # on préfère un delete et insert plutôt que de chercher à incrémenter des compteurs
 
-  # on commence par déterminer la semaine courante depuis la date à traiter                     re.sub('^0+', '', DateToTreat[5:7])
+  # on commence par déterminer le mois courant depuis la date à traiter
   global MonthYear
 
   # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
@@ -201,17 +192,13 @@ def MonthlyUpdate():
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
-    week, month, year, weekyear, monthyear
+    month, year, monthyear
   FROM ogcstatistics_analyze.ogc_services_stats_daily
   WHERE monthyear = '""" + MonthYear + """'
   GROUP BY org, user_name, service, request, layer, month, year, monthyear
   );"""
 
-
   print(SQLinsertM)
-
-  SQLVacuumM = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_monthly """
-
 
    # connection à la base
   try:
@@ -229,10 +216,6 @@ def MonthlyUpdate():
 
     # puis on lance la requête qui insère
     cursor.execute(SQLinsertM)
-    conn.commit()
-
-    # on vide l'espace de stockage occupé par les lignes supprimées
-    cursor.execute(SQLVacuumM)
     conn.commit()
 
     cursor.close()
