@@ -226,6 +226,32 @@ def MonthlyUpdate():
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def Vacuum() :
+
+  #on réalise un vacuum chaque début de mois afin d'optimiser l'espace de stockage
+  SQLVacuumW = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_weekly; """
+  SQLVacuumM = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_monthly; """
+
+  if DateToTreat[8:10] == '01' :
+
+    #connexion à la base
+    conn = psycopg2.connect(strConnDB)
+    cursor = conn.cursor()
+    conn.set_session(autocommit=True)
+
+    #lancement du VACUUM
+    cursor.execute(SQLVacuumW)
+    cursor.execute(SQLVacuumM)
+
+    cursor.close()
+    conn.close()
+
+  else :
+    print("Le VACUUM est lancé la 1er du mois")
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 def main():
 
@@ -329,6 +355,7 @@ def main():
   DailyUpdate()
   WeeklyUpdate()
   MonthlyUpdate()
+  Vacuum()
 
   print( "")
   print( "  F I N")
