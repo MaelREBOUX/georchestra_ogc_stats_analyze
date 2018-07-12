@@ -120,7 +120,6 @@ def DailyUpdate():
     # connexion à la base, si plante, on sort
     conn = psycopg2.connect(DB_stats_ConnString)
     cursor = conn.cursor()
-
   except:
     print( "connexion à la base impossible")
 
@@ -129,19 +128,23 @@ def DailyUpdate():
     cursor.execute(SQLinsert)
     conn.commit()
 
-    # puis on lance la requête pour vérifier le nb d'enregistrements créés
-    cursor.execute(SQLVerif)
-    result = cursor.fetchone()
-    NbRecordsInserted = result[0]
-    print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
-
-
-    cursor.close()
-    conn.close()
+    try:
+      # puis on lance la requête pour vérifier le nb d'enregistrements créés
+      cursor.execute(SQLVerif)
+      result = cursor.fetchone()
+      NbRecordsInserted = result[0]
+      print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
+    except:
+      print( "impossible d'exécuter la requête VERIF")
 
   except:
-    print( "impossible d'exécuter la requête")
+    print( "impossible d'exécuter la requête INSERT")
 
+  try:
+    cursor.close()
+    conn.close()
+  except:
+    print( "")
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -191,6 +194,11 @@ def WeeklyUpdate():
   );"""
   #print(SQLinsertW)
 
+  SQLVerif = """SELECT COUNT(*) AS count
+  FROM """ + DB_stats_schema + """.ogc_services_stats_weekly
+  WHERE weekyear = '""" + WeekYear + """'"""
+  #print(SQLVerif)
+
    # connection à la base
   try:
     # connexion à la base, si plante, on sort
@@ -209,15 +217,23 @@ def WeeklyUpdate():
     cursor.execute(SQLinsertW)
     conn.commit()
 
-    cursor.close()
-    conn.close()
+    try:
+      # puis on lance la requête pour vérifier le nb d'enregistrements créés
+      cursor.execute(SQLVerif)
+      result = cursor.fetchone()
+      NbRecordsInserted = result[0]
+      print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
+    except:
+      print( "impossible d'exécuter la requête VERIF")
 
   except:
-    print( "impossible d'exécuter la requête")
+    print( "impossible d'exécuter la requête DELETE ou INSERT")
 
-
-  # TODO : SQL verif
-  print( "  nombre d'enregistrements insérés : TODO" )
+  try:
+    cursor.close()
+    conn.close()
+  except:
+    print( "")
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -259,6 +275,11 @@ def MonthlyUpdate():
   );"""
   #print(SQLinsertM)
 
+  SQLVerif = """SELECT COUNT(*) AS count
+  FROM """ + DB_stats_schema + """.ogc_services_stats_monthly
+  WHERE monthyear = '""" + MonthYear + """'"""
+  #print(SQLVerif)
+
    # connection à la base
   try:
     # connexion à la base, si plante, on sort
@@ -277,15 +298,23 @@ def MonthlyUpdate():
     cursor.execute(SQLinsertM)
     conn.commit()
 
-    cursor.close()
-    conn.close()
+    try:
+      # puis on lance la requête pour vérifier le nb d'enregistrements créés
+      cursor.execute(SQLVerif)
+      result = cursor.fetchone()
+      NbRecordsInserted = result[0]
+      print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
+    except:
+      print( "impossible d'exécuter la requête VERIF")
 
   except:
-    print( "impossible d'exécuter la requête")
+    print( "impossible d'exécuter la requête DELETE ou INSERT")
 
-
-  # TODO : SQL verif
-  print( "  nombre d'enregistrements insérés : TODO" )
+  try:
+    cursor.close()
+    conn.close()
+  except:
+    print( "")
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -415,7 +444,7 @@ def main():
 
 
   # for debug
-  print('\n')
+  print('\n===========================================================')
   print( "date to query : " + DateToTreat)
   print( "date wich follow : " + DateToFollow )
 
