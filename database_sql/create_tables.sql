@@ -64,10 +64,8 @@ CREATE TABLE statistiques.ogc_services_stats_weekly
   layer character varying(255),
   count bigint,
   week integer,
-  month integer,
   year integer,
   weekyear character varying(10),
-  monthyear character varying(10),
   CONSTRAINT ogc_services_stats_weekly_pk PRIMARY KEY (siteid, weekyear, org, user_name, service, request, layer)
 );
 

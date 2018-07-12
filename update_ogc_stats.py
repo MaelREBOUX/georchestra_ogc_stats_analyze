@@ -24,8 +24,8 @@ import re
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-# connexion à la base d'écriture des stats
-DB_georchestra_ConnString = "host='"+ config.get('DB_georchestra', 'host') +"' dbname='"+ config.get('DB_georchestra', 'db') +"' user='"+ config.get('DB_georchestra', 'user') +"' password='"+ config.get('DB_georchestra', 'passwd') +"'"
+# connexion DBLINK à la base georchestra
+DB_georchestra_ConnString = "host="+ config.get('DB_georchestra', 'host') +" dbname="+ config.get('DB_georchestra', 'db') +" user="+ config.get('DB_georchestra', 'user') +" password="+ config.get('DB_georchestra', 'passwd')
 # le schéma
 DB_georchestra_schema = config.get('DB_georchestra', 'schema')
 
@@ -54,25 +54,56 @@ def DailyUpdate():
 
   # trouver la table à attaquer
   ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
-  print ( "la table à traiter est : " + ogc_table)
+  print ( "la table à traiter est : " + DB_georchestra_schema + "." + ogc_table )
 
   # on crée les 2 requêtes SQL à jouer
-  SQLinsert = """INSERT INTO """ + DBschema + """.ogc_services_stats_daily
+  SQLinsert = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_daily
   (
     SELECT
-      1 AS siteid,
-      '""" + DateToTreat + """'::date AS date,
-      org, user_name, service, request, layer,
-      COUNT(*) AS count,
-      EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)::integer AS week,
-      EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)::integer AS month,
-      EXTRACT(YEAR FROM '""" + DateToTreat + """'::date)::integer AS year,
-      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', LPAD(EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)::text, 2, '0')) AS weekyear,
-      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', LPAD(EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)::text, 2, '0')) AS monthyear
-    FROM ogcstatistics.""" + ogc_table + """
-    WHERE date > '""" + DateToTreat + """'::date AND date < '""" + DateToFollow + """'::date
-    AND user_name NOT IN ('acces.sig', 'admsig', 'c2c-monitoring', 'geoserver_privileged_user', 'intranet', 'ldapsig')
-    GROUP BY org, user_name, service, request, layer
+      siteid,
+      date,
+      org,
+      user_name,
+      service,
+      request,
+      layer,
+      count,
+      week,
+      month,
+      year,
+      weekyear,
+      monthyear
+    FROM
+      dblink('""" + DB_georchestra_ConnString + """'::text,
+        'SELECT
+          1 AS siteid,
+          ''""" + DateToTreat + """''::date AS date,
+          org, user_name, service, request, layer,
+          COUNT(*) AS count,
+          EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)::integer AS week,
+          EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)::integer AS month,
+          EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date)::integer AS year,
+          CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)) AS weekyear,
+          CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)) AS monthyear
+        FROM """ + DB_georchestra_schema + "." + ogc_table + """
+        WHERE date > ''""" + DateToTreat + """''::date AND date < ''""" + DateToFollow + """''::date
+        AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
+        GROUP BY org, user_name, service, request, layer'::text)
+      AS (
+          siteid integer,
+          date date,
+          org character varying(255),
+          user_name character varying(255),
+          service character varying(5),
+          request character varying(20),
+          layer character varying(255),
+          count bigint,
+          week integer,
+          month integer,
+          year integer,
+          weekyear character varying(10),
+          monthyear character varying(10)
+          )
   );"""
   #print(SQLinsert)
 
@@ -86,7 +117,7 @@ def DailyUpdate():
   # connection à la base
   try:
     # connexion à la base, si plante, on sort
-    conn = psycopg2.connect(strConnDB)
+    conn = psycopg2.connect(DB_stats_ConnString)
     cursor = conn.cursor()
 
   except:
@@ -157,13 +188,12 @@ def WeeklyUpdate():
   WHERE weekyear = '""" + WeekYear + """'
   GROUP BY org, user_name, service, request, layer, week, year, weekyear
   );"""
-
-  print(SQLinsertW)
+  #print(SQLinsertW)
 
    # connection à la base
   try:
     # connexion à la base, si plante, on sort
-    conn = psycopg2.connect(strConnDB)
+    conn = psycopg2.connect(DB_stats_ConnString)
     cursor = conn.cursor()
 
   except:
@@ -221,13 +251,12 @@ def MonthlyUpdate():
   WHERE monthyear = '""" + MonthYear + """'
   GROUP BY org, user_name, service, request, layer, month, year, monthyear
   );"""
-
   print(SQLinsertM)
 
    # connection à la base
   try:
     # connexion à la base, si plante, on sort
-    conn = psycopg2.connect(strConnDB)
+    conn = psycopg2.connect(DB_stats_ConnString)
     cursor = conn.cursor()
 
   except:
@@ -259,7 +288,7 @@ def Vacuum() :
   if DateToTreat[8:10] == '01' :
 
     #connexion à la base
-    conn = psycopg2.connect(strConnDB)
+    conn = psycopg2.connect(DB_stats_ConnString)
     cursor = conn.cursor()
     conn.set_session(autocommit=True)
 
