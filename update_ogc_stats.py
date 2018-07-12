@@ -11,6 +11,7 @@
 #-------------------------------------------------------------------------------
 
 import sys
+import configparser
 import argparse
 from argparse import RawTextHelpFormatter
 from datetime import date, timedelta, datetime
@@ -18,9 +19,22 @@ import psycopg2
 import re
 
 
-# la base de données
-strConnDB = "host='localhost' dbname='georchestra' user='www-data' password='www-data'"
-DBschema = "ogcstatistics_analyze"
+# lecture du fichier de configuration qui contient les infos de connection
+# à la base geOrchestra et à la base dans laquelle on écrit les stats consolidées
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+# connexion à la base d'écriture des stats
+DB_georchestra_ConnString = "host='"+ config.get('DB_georchestra', 'host') +"' dbname='"+ config.get('DB_georchestra', 'db') +"' user='"+ config.get('DB_georchestra', 'user') +"' password='"+ config.get('DB_georchestra', 'passwd') +"'"
+# le schéma
+DB_georchestra_schema = config.get('DB_georchestra', 'schema')
+
+
+# connexion à la base d'écriture des stats
+DB_stats_ConnString = "host='"+ config.get('DB_stats', 'host') +"' dbname='"+ config.get('DB_stats', 'db') +"' user='"+ config.get('DB_stats', 'user') +"' password='"+ config.get('DB_stats', 'passwd') +"'"
+# le schéma
+DB_stats_schema = config.get('DB_stats', 'schema')
+
 
 # les variables globales
 siteid = 0
@@ -64,11 +78,11 @@ def DailyUpdate():
   #print(SQLinsert)
 
   SQLVerif = """SELECT COUNT(*) AS count
-  FROM """ + DBschema + """.ogc_services_stats_daily
+  FROM """ + DB_stats_schema + """.ogc_services_stats_daily
   WHERE date ='""" + DateToTreat + """'::date"""
   #print(SQLVerif)
 
-  SQLVacuumD = """ VACUUM FULL """ + DBschema + """.ogc_services_stats_daily; """
+  SQLVacuumD = """ VACUUM FULL """ + DB_stats_schema + """.ogc_services_stats_daily; """
 
   # connection à la base
   try:
@@ -118,19 +132,19 @@ def WeeklyUpdate():
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteW = """DELETE FROM """ + DBschema + """.ogc_services_stats_weekly
+  SQLdeleteW = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_weekly
       WHERE weekyear = '""" + WeekYear +"""'; """
 
   print(SQLdeleteW)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
-  SQLinsertW = """INSERT INTO """ + DBschema + """.ogc_services_stats_weekly
+  SQLinsertW = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_weekly
 (
   SELECT
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
     week, year, weekyear
-  FROM """ + DBschema + """.ogc_services_stats_daily
+  FROM """ + DB_stats_schema + """.ogc_services_stats_daily
   WHERE weekyear = '""" + WeekYear + """'
   GROUP BY org, user_name, service, request, layer, week, year, weekyear
   );"""
@@ -181,19 +195,19 @@ def MonthlyUpdate():
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteM = """DELETE FROM """ + DBschema + """.ogc_services_stats_monthly
+  SQLdeleteM = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_monthly
       WHERE monthyear = '""" + MonthYear +"""'; """
 
   print(SQLdeleteM)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
-  SQLinsertM = """INSERT INTO """ + DBschema + """.ogc_services_stats_monthly
+  SQLinsertM = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_monthly
 (
   SELECT
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
     month, year, monthyear
-  FROM """ + DBschema + """.ogc_services_stats_daily
+  FROM """ + DB_stats_schema + """.ogc_services_stats_daily
   WHERE monthyear = '""" + MonthYear + """'
   GROUP BY org, user_name, service, request, layer, month, year, monthyear
   );"""
@@ -229,8 +243,8 @@ def MonthlyUpdate():
 def Vacuum() :
 
   #on réalise un vacuum chaque début de mois afin d'optimiser l'espace de stockage
-  SQLVacuumW = """ VACUUM FULL """ + DBschema + """.ogc_services_stats_weekly; """
-  SQLVacuumM = """ VACUUM FULL """ + DBschema + """.ogc_services_stats_monthly; """
+  SQLVacuumW = """ VACUUM FULL """ + DB_stats_schema + """.ogc_services_stats_weekly; """
+  SQLVacuumM = """ VACUUM FULL """ + DB_stats_schema + """.ogc_services_stats_monthly; """
 
   if DateToTreat[8:10] == '01' :
 
