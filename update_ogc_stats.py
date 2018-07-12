@@ -56,7 +56,7 @@ def DailyUpdate():
   print( "# traitement des stats au jour" )
 
   # trouver la table à attaquer
-  ogc_table = "  ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
+  ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
   print ( "  table à traiter : " + DB_georchestra_schema + "." + ogc_table )
 
   # on crée les 2 requêtes SQL à jouer
