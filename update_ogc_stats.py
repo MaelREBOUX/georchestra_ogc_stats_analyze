@@ -30,7 +30,6 @@ DateToFollow = ""
 WeekYear = ""
 
 
-
 def DailyUpdate():
 
   # on va lire la table  ogc_services_log_y[YYY]m[M]  qui correspond à la date demandée
@@ -54,8 +53,8 @@ def DailyUpdate():
       EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)::integer AS week,
       EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)::integer AS month,
       EXTRACT(YEAR FROM '""" + DateToTreat + """'::date)::integer AS year,
-      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)) AS weekyear,
-      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)) AS monthyear
+      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', LPAD(EXTRACT(WEEK FROM '""" + DateToTreat + """'::date)::text, 2, '0')) AS weekyear,
+      CONCAT(EXTRACT(YEAR FROM '""" + DateToTreat + """'::date), '-', LPAD(EXTRACT(MONTH FROM '""" + DateToTreat + """'::date)::text, 2, '0')) AS monthyear
     FROM ogcstatistics.""" + ogc_table + """
     WHERE date > '""" + DateToTreat + """'::date AND date < '""" + DateToFollow + """'::date
     AND user_name NOT IN ('acces.sig', 'admsig', 'c2c-monitoring', 'geoserver_privileged_user', 'intranet', 'ldapsig')
@@ -111,10 +110,20 @@ def WeeklyUpdate():
   # on commence par déterminer la semaine courante depuis la date à traiter                     re.sub('^0+', '', DateToTreat[5:7])
   global WeekYear
 
+
   # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
   WeekYear = date(int(DateToTreat[0:4]) , int(re.sub('^0+', '', DateToTreat[5:7])), int(re.sub('^0+', '', DateToTreat[8:10]))).isocalendar()[1]
+
+  # si la semaine courante a un seul chiffre, on la modifie pour en avoir 2 (ex : 9 -> 09)
+  if len(str(WeekYear))==1 :
+    WeekYear = '%02d' % WeekYear
+
+  else :
+    print ("La semaine a deux chiffres :" + str(WeekYear))
+
   WeekYear = DateToTreat[0:4] + '-' + str(WeekYear)
   print( WeekYear)
+
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
@@ -136,7 +145,6 @@ def WeeklyUpdate():
   );"""
 
   print(SQLinsertW)
-
 
    # connection à la base
   try:
@@ -163,6 +171,7 @@ def WeeklyUpdate():
     print( "impossible d'exécuter la requête")
 
 
+
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def MonthlyUpdate():
@@ -176,7 +185,8 @@ def MonthlyUpdate():
   global MonthYear
 
   # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
-  MonthYear = DateToTreat[0:4] + '-' + re.sub('^0+', '', DateToTreat[5:7])
+  MonthYear = DateToTreat[0:4] + '-' + DateToTreat[5:7]
+
   print( MonthYear )
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
