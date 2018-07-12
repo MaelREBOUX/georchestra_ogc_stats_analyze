@@ -1,6 +1,6 @@
 ﻿-- Table site ( 1 = intranet; 2 = extranet)
 
-CREATE TABLE ogcstatistics.sites
+CREATE TABLE ogcstatistics.ogc_services_sites
 (
   siteid integer,
   sitename text

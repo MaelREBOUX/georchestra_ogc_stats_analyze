@@ -20,7 +20,7 @@ import re
 
 # la base de données
 strConnDB = "host='localhost' dbname='georchestra' user='www-data' password='www-data'"
-
+DBschema = "ogcstatistics_analyze"
 
 # les variables globales
 siteid = 0
@@ -44,7 +44,7 @@ def DailyUpdate():
   print ( "la table à traiter est : " + ogc_table)
 
   # on crée les 2 requêtes SQL à jouer
-  SQLinsert = """INSERT INTO ogcstatistics_analyze.ogc_services_stats_daily
+  SQLinsert = """INSERT INTO """ + DBschema + """.ogc_services_stats_daily
   (
     SELECT
       1 AS siteid,
@@ -64,11 +64,11 @@ def DailyUpdate():
   #print(SQLinsert)
 
   SQLVerif = """SELECT COUNT(*) AS count
-  FROM ogcstatistics_analyze.ogc_services_stats_daily
+  FROM """ + DBschema + """.ogc_services_stats_daily
   WHERE date ='""" + DateToTreat + """'::date"""
   #print(SQLVerif)
 
-  SQLVacuumD = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_daily; """
+  SQLVacuumD = """ VACUUM FULL """ + DBschema + """.ogc_services_stats_daily; """
 
   # connection à la base
   try:
@@ -118,19 +118,19 @@ def WeeklyUpdate():
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteW = """DELETE FROM ogcstatistics_analyze.ogc_services_stats_weekly
+  SQLdeleteW = """DELETE FROM """ + DBschema + """.ogc_services_stats_weekly
       WHERE weekyear = '""" + WeekYear +"""'; """
 
   print(SQLdeleteW)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
-  SQLinsertW = """INSERT INTO ogcstatistics_analyze.ogc_services_stats_weekly
+  SQLinsertW = """INSERT INTO """ + DBschema + """.ogc_services_stats_weekly
 (
   SELECT
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
     week, year, weekyear
-  FROM ogcstatistics_analyze.ogc_services_stats_daily
+  FROM """ + DBschema + """.ogc_services_stats_daily
   WHERE weekyear = '""" + WeekYear + """'
   GROUP BY org, user_name, service, request, layer, week, year, weekyear
   );"""
@@ -181,19 +181,19 @@ def MonthlyUpdate():
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteM = """DELETE FROM ogcstatistics_analyze.ogc_services_stats_monthly
+  SQLdeleteM = """DELETE FROM """ + DBschema + """.ogc_services_stats_monthly
       WHERE monthyear = '""" + MonthYear +"""'; """
 
   print(SQLdeleteM)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
-  SQLinsertM = """INSERT INTO ogcstatistics_analyze.ogc_services_stats_monthly
+  SQLinsertM = """INSERT INTO """ + DBschema + """.ogc_services_stats_monthly
 (
   SELECT
     1 AS siteid,
     org, user_name, service, request, layer,
     SUM(count) AS count,
     month, year, monthyear
-  FROM ogcstatistics_analyze.ogc_services_stats_daily
+  FROM """ + DBschema + """.ogc_services_stats_daily
   WHERE monthyear = '""" + MonthYear + """'
   GROUP BY org, user_name, service, request, layer, month, year, monthyear
   );"""
@@ -229,8 +229,8 @@ def MonthlyUpdate():
 def Vacuum() :
 
   #on réalise un vacuum chaque début de mois afin d'optimiser l'espace de stockage
-  SQLVacuumW = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_weekly; """
-  SQLVacuumM = """ VACUUM FULL ogcstatistics_analyze.ogc_services_stats_monthly; """
+  SQLVacuumW = """ VACUUM FULL """ + DBschema + """.ogc_services_stats_weekly; """
+  SQLVacuumM = """ VACUUM FULL """ + DBschema + """.ogc_services_stats_monthly; """
 
   if DateToTreat[8:10] == '01' :
 
@@ -247,7 +247,7 @@ def Vacuum() :
     conn.close()
 
   else :
-    print("Le VACUUM est lancé la 1er du mois")
+    print("Le VACUUM est lancé le 1er du mois")
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
