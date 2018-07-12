@@ -52,9 +52,12 @@ def DailyUpdate():
   # tout en supprimant les enregistrements créés par par des comptes liés au monitoring des services
   # + count pour chaque cas
 
+  print("")
+  print( "# traitement des stats au jour" )
+
   # trouver la table à attaquer
-  ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
-  print ( "la table à traiter est : " + DB_georchestra_schema + "." + ogc_table )
+  ogc_table = "  ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
+  print ( "  table à traiter : " + DB_georchestra_schema + "." + ogc_table )
 
   # on crée les 2 requêtes SQL à jouer
   SQLinsert = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_daily
@@ -112,8 +115,6 @@ def DailyUpdate():
   WHERE date ='""" + DateToTreat + """'::date"""
   #print(SQLVerif)
 
-  SQLVacuumD = """ VACUUM FULL """ + DB_stats_schema + """.ogc_services_stats_daily; """
-
   # connection à la base
   try:
     # connexion à la base, si plante, on sort
@@ -132,7 +133,7 @@ def DailyUpdate():
     cursor.execute(SQLVerif)
     result = cursor.fetchone()
     NbRecordsInserted = result[0]
-    print( "nombre d'enregistrements traités : " + str(NbRecordsInserted) )
+    print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
 
 
     cursor.close()
@@ -152,7 +153,10 @@ def WeeklyUpdate():
   # car ce script peut être exécuté chaque jour de la semaine
   # on préfère un delete et insert plutôt que de chercher à incrémenter des compteurs
 
-  # on commence par déterminer la semaine courante depuis la date à traiter                     re.sub('^0+', '', DateToTreat[5:7])
+  print("")
+  print( "# traitement des stats à la semaine" )
+
+  # on commence par déterminer la semaine courante depuis la date à traiter
   global WeekYear
 
 
@@ -163,30 +167,27 @@ def WeeklyUpdate():
   if len(str(WeekYear))==1 :
     WeekYear = '%02d' % WeekYear
 
-  else :
-    print ("La semaine a deux chiffres :" + str(WeekYear))
-
   WeekYear = DateToTreat[0:4] + '-' + str(WeekYear)
-  print( WeekYear)
+  print( "  WeekYear = " + WeekYear)
 
 
-  #on vide la table de la semaine courante avant d'insérer des enregistrements
+  # on vide la table de la semaine courante avant d'insérer les noveaux enregistrements de la semaine
 
   SQLdeleteW = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_weekly
       WHERE weekyear = '""" + WeekYear +"""'; """
+  #print(SQLdeleteW)
 
-  print(SQLdeleteW)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
   SQLinsertW = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_weekly
-(
-  SELECT
-    1 AS siteid,
-    org, user_name, service, request, layer,
-    SUM(count) AS count,
-    week, year, weekyear
-  FROM """ + DB_stats_schema + """.ogc_services_stats_daily
-  WHERE weekyear = '""" + WeekYear + """'
-  GROUP BY org, user_name, service, request, layer, week, year, weekyear
+  (
+    SELECT
+      1 AS siteid,
+      org, user_name, service, request, layer,
+      SUM(count) AS count,
+      week, year, weekyear
+    FROM """ + DB_stats_schema + """.ogc_services_stats_daily
+    WHERE weekyear = '""" + WeekYear + """'
+    GROUP BY org, user_name, service, request, layer, week, year, weekyear
   );"""
   #print(SQLinsertW)
 
@@ -215,6 +216,9 @@ def WeeklyUpdate():
     print( "impossible d'exécuter la requête")
 
 
+  # TODO : SQL verif
+  print( "  nombre d'enregistrements insérés : TODO" )
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -225,33 +229,36 @@ def MonthlyUpdate():
   # car ce script peut être exécuté chaque jour de la semaine
   # on préfère un delete et insert plutôt que de chercher à incrémenter des compteurs
 
+  print("")
+  print( "# traitement des stats au mois" )
+
   # on commence par déterminer le mois courant depuis la date à traiter
   global MonthYear
 
   # à simplifier mais fonctionner, peut être en créant des variables year, month, days en int
   MonthYear = DateToTreat[0:4] + '-' + DateToTreat[5:7]
 
-  print( MonthYear )
+  print( "  MonthYear = " + MonthYear)
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
   SQLdeleteM = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_monthly
       WHERE monthyear = '""" + MonthYear +"""'; """
+  #print(SQLdeleteM)
 
-  print(SQLdeleteM)
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
   SQLinsertM = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_monthly
-(
-  SELECT
-    1 AS siteid,
-    org, user_name, service, request, layer,
-    SUM(count) AS count,
-    month, year, monthyear
-  FROM """ + DB_stats_schema + """.ogc_services_stats_daily
-  WHERE monthyear = '""" + MonthYear + """'
-  GROUP BY org, user_name, service, request, layer, month, year, monthyear
+  (
+    SELECT
+      1 AS siteid,
+      org, user_name, service, request, layer,
+      SUM(count) AS count,
+      month, year, monthyear
+    FROM """ + DB_stats_schema + """.ogc_services_stats_daily
+    WHERE monthyear = '""" + MonthYear + """'
+    GROUP BY org, user_name, service, request, layer, month, year, monthyear
   );"""
-  print(SQLinsertM)
+  #print(SQLinsertM)
 
    # connection à la base
   try:
@@ -277,15 +284,25 @@ def MonthlyUpdate():
   except:
     print( "impossible d'exécuter la requête")
 
+
+  # TODO : SQL verif
+  print( "  nombre d'enregistrements insérés : TODO" )
+
+
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def Vacuum() :
 
-  #on réalise un vacuum chaque début de mois afin d'optimiser l'espace de stockage
+  print("")
+  print( "# vacuum des tables si on est le 1er du mois" )
+
+  # on réalise un vacuum chaque début de mois afin d'optimiser l'espace de stockage
   SQLVacuumW = """ VACUUM FULL """ + DB_stats_schema + """.ogc_services_stats_weekly; """
   SQLVacuumM = """ VACUUM FULL """ + DB_stats_schema + """.ogc_services_stats_monthly; """
 
   if DateToTreat[8:10] == '01' :
+
+    print("  vacuum en cours")
 
     #connexion à la base
     conn = psycopg2.connect(DB_stats_ConnString)
@@ -299,9 +316,8 @@ def Vacuum() :
     cursor.close()
     conn.close()
 
-  else :
-    print("Le VACUUM est lancé le 1er du mois")
-
+  else:
+     print("  pas de vacuum à faire")
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
