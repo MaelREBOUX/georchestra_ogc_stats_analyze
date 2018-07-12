@@ -86,8 +86,8 @@ def DailyUpdate():
           EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)::integer AS week,
           EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)::integer AS month,
           EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date)::integer AS year,
-          CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)) AS weekyear,
-          CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)) AS monthyear
+          CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', LPAD(EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)::text, 2, ''0'')) AS weekyear,
+          CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', LPAD(EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)::text, 2, ''0'')) AS monthyear
         FROM """ + DB_georchestra_schema + "." + ogc_table + """
         WHERE date > ''""" + DateToTreat + """''::date AND date < ''""" + DateToFollow + """''::date
         AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
@@ -242,8 +242,7 @@ def MonthlyUpdate():
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteM = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_monthly
-      WHERE monthyear = '""" + MonthYear +"""'; """
+  SQLdeleteM = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_monthly WHERE monthyear = '""" + MonthYear +"""'; """
   #print(SQLdeleteM)
 
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
