@@ -189,7 +189,7 @@ def WeeklyUpdate():
       week, year, weekyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
     WHERE weekyear = '""" + WeekYear + """' AND siteid = """ + siteid + """
-    GROUP BY org, user_name, service, request, layer, week, year, weekyear
+    GROUP BY siteid, org, user_name, service, request, layer, week, year, weekyear
   );"""
   #print(SQLinsertW)
 
@@ -269,8 +269,8 @@ def MonthlyUpdate():
       SUM(count) AS count,
       month, year, monthyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
-    WHERE monthyear = '""" + MonthYear + """ AND siteid = """ + siteid +"""'
-    GROUP BY org, user_name, service, request, layer, month, year, monthyear
+    WHERE monthyear = '""" + MonthYear + """' AND siteid = """ + siteid +"""
+    GROUP BY siteid, org, user_name, service, request, layer, month, year, monthyear
   );"""
   #print(SQLinsertM)
 
