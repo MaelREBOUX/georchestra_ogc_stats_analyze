@@ -79,7 +79,7 @@ def DailyUpdate():
     FROM
       dblink('""" + DB_georchestra_ConnString + """'::text,
         'SELECT
-          1 AS siteid,
+          """ + siteid + """ AS siteid,
           ''""" + DateToTreat + """''::date AS date,
           org, user_name, service, request, layer,
           COUNT(*) AS count,
@@ -177,26 +177,25 @@ def WeeklyUpdate():
   # on vide la table de la semaine courante avant d'insérer les noveaux enregistrements de la semaine
 
   SQLdeleteW = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_weekly
-      WHERE weekyear = '""" + WeekYear +"""'; """
+      WHERE weekyear = '""" + WeekYear +"""' AND siteid = """ + siteid + """; """
   #print(SQLdeleteW)
 
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
   SQLinsertW = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_weekly
   (
     SELECT
-      1 AS siteid,
-      org, user_name, service, request, layer,
+      siteid, org, user_name, service, request, layer,
       SUM(count) AS count,
       week, year, weekyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
-    WHERE weekyear = '""" + WeekYear + """'
+    WHERE weekyear = '""" + WeekYear + """' AND siteid = """ + siteid + """
     GROUP BY org, user_name, service, request, layer, week, year, weekyear
   );"""
   #print(SQLinsertW)
 
   SQLVerif = """SELECT COUNT(*) AS count
   FROM """ + DB_stats_schema + """.ogc_services_stats_weekly
-  WHERE weekyear = '""" + WeekYear + """'"""
+  WHERE weekyear = '""" + WeekYear + """' AND siteid = """ + siteid + """;"""
   #print(SQLVerif)
 
    # connection à la base
@@ -258,26 +257,26 @@ def MonthlyUpdate():
 
   #on vide la table de la semaine courante avant d'insérer des enregistrements
 
-  SQLdeleteM = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_monthly WHERE monthyear = '""" + MonthYear +"""'; """
+  SQLdeleteM = """DELETE FROM """ + DB_stats_schema + """.ogc_services_stats_monthly
+  WHERE monthyear = '""" + MonthYear +"""' AND siteid = """ + siteid +"""; """
   #print(SQLdeleteM)
 
   # on peut maintenant insérer toute les valeurs correspondant à cette semaine courante
   SQLinsertM = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_monthly
   (
     SELECT
-      1 AS siteid,
-      org, user_name, service, request, layer,
+      siteid, org, user_name, service, request, layer,
       SUM(count) AS count,
       month, year, monthyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
-    WHERE monthyear = '""" + MonthYear + """'
+    WHERE monthyear = '""" + MonthYear + """ AND siteid = """ + siteid +"""'
     GROUP BY org, user_name, service, request, layer, month, year, monthyear
   );"""
   #print(SQLinsertM)
 
   SQLVerif = """SELECT COUNT(*) AS count
   FROM """ + DB_stats_schema + """.ogc_services_stats_monthly
-  WHERE monthyear = '""" + MonthYear + """'"""
+  WHERE monthyear = '""" + MonthYear + """' AND siteid = """ + siteid +""";"""
   #print(SQLVerif)
 
    # connection à la base
