@@ -55,6 +55,9 @@ def DailyUpdate():
   print("")
   print( "# traitement des stats au jour" )
 
+  # indicateur pour l'état de la maj des stats
+  status = False
+
   # trouver la table à attaquer
   ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
   print ( "  table à traiter : " + DB_georchestra_schema + "." + ogc_table )
@@ -134,17 +137,28 @@ def DailyUpdate():
       result = cursor.fetchone()
       NbRecordsInserted = result[0]
       print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
+
+      # si on est là c'est que tout s'est bien passé
+      status = True
+
     except:
-      print( "impossible d'exécuter la requête VERIF")
+      print( "  impossible d'exécuter la requête VERIF")
 
   except:
-    print( "impossible d'exécuter la requête INSERT")
+    print( "  impossible d'exécuter la requête INSERT")
 
   try:
     cursor.close()
     conn.close()
   except:
-    print( "")
+    print("")
+
+  # on peut donc passer à la maj des stats à la semaine
+  # si feu vert
+  if status == True :
+    WeeklyUpdate()
+  else:
+    print("  arrêt du script")
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -228,11 +242,15 @@ def WeeklyUpdate():
   except:
     print( "impossible d'exécuter la requête DELETE ou INSERT")
 
+  # si on est là c'est que tout s'est bien passé
   try:
     cursor.close()
     conn.close()
   except:
-    print( "")
+    print("")
+
+  # on peut donc passer à la maj des stats au mois
+  MonthlyUpdate()
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -309,11 +327,15 @@ def MonthlyUpdate():
   except:
     print( "impossible d'exécuter la requête DELETE ou INSERT")
 
+  # si on est là c'est que tout s'est bien passé
   try:
     cursor.close()
     conn.close()
   except:
-    print( "")
+    print("")
+
+  # on peut donc passer au vaccum
+  Vacuum()
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -449,9 +471,9 @@ def main():
 
   # et on lance le traitement des logs pour le jour demandé
   DailyUpdate()
-  WeeklyUpdate()
-  MonthlyUpdate()
-  Vacuum()
+  #WeeklyUpdate()
+  #MonthlyUpdate()
+  #Vacuum()
 
   print( "")
   print( "  F I N")
