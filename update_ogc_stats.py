@@ -242,11 +242,13 @@ def DailyUpdate():
       # si on est là c'est que tout s'est bien passé
       status = True
 
-    except:
-      print( "  impossible d'exécuter la requête VERIF")
+    except Exception as err:
+      print( "impossible d'exécuter la requête VERIF")
+      print( "  PostgreSQL error code : " + err.pgcode )
 
-  except:
+  except Exception as err:
     print( "  impossible d'exécuter la requête INSERT")
+    print( "  PostgreSQL error code : " + err.pgcode )
 
   try:
     cursor.close()
@@ -337,11 +339,13 @@ def WeeklyUpdate():
       result = cursor.fetchone()
       NbRecordsInserted = result[0]
       print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
-    except:
+    except Exception as err:
       print( "impossible d'exécuter la requête VERIF")
+      print( "  PostgreSQL error code : " + err.pgcode )
 
-  except:
-    print( "impossible d'exécuter la requête DELETE ou INSERT")
+  except Exception as err:
+    print( "  impossible d'exécuter la requête DELETE ou INSERT")
+    print( "  PostgreSQL error code : " + err.pgcode )
 
   # si on est là c'est que tout s'est bien passé
   try:
@@ -422,11 +426,13 @@ def MonthlyUpdate():
       result = cursor.fetchone()
       NbRecordsInserted = result[0]
       print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
-    except:
+    except Exception as err:
       print( "impossible d'exécuter la requête VERIF")
+      print( "  PostgreSQL error code : " + err.pgcode )
 
-  except:
-    print( "impossible d'exécuter la requête DELETE ou INSERT")
+  except Exception as err:
+    print( "  impossible d'exécuter la requête DELETE ou INSERT")
+    print( "  PostgreSQL error code : " + err.pgcode )
 
   # si on est là c'est que tout s'est bien passé
   try:
@@ -459,9 +465,13 @@ def Vacuum() :
     cursor = conn.cursor()
     conn.set_session(autocommit=True)
 
-    #lancement du VACUUM
-    cursor.execute(SQLVacuumW)
-    cursor.execute(SQLVacuumM)
+    try:
+      #lancement du VACUUM
+      cursor.execute(SQLVacuumW)
+      cursor.execute(SQLVacuumM)
+    except Exception as err:
+      print( "  impossible de faire les VACUUM")
+      print( "  PostgreSQL error code : " + err.pgcode )
 
     cursor.close()
     conn.close()
