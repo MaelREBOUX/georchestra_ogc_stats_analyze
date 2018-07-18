@@ -44,6 +44,104 @@ DateToFollow = ""
 WeekYear = ""
 
 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+def LiveUpdate() :
+
+  print("")
+  print( "# traitement des stats live !" )
+
+  # indicateur pour l'état de la maj des stats
+  status = False
+
+  # trouver la table à attaquer
+  ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
+  print ( "  table à traiter : " + DB_georchestra_schema + "." + ogc_table )
+
+  # on crée les 2 requêtes SQL à jouer
+  SQLinsert = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_live
+  (
+    SELECT
+      siteid,
+      org,
+      user_name,
+      service,
+      hits,
+      layers_nb,
+      first_hit,
+      last_hit
+    FROM
+      dblink('""" + DB_georchestra_ConnString + """'::text,
+        'SELECT
+          """ + siteid + """ AS siteid,
+          org, user_name, service,
+          COUNT(service) AS hits,
+          COUNT(DISTINCT(layer)) AS layers_nb,
+          RIGHT(MIN(date)::text,8)::varchar AS first_hit,
+          RIGHT(MAX(date)::text,8)::varchar AS last_hit
+        FROM """ + DB_georchestra_schema + "." + ogc_table + """
+        WHERE
+          date > CURRENT_DATE
+          AND service IN (''WMS'', ''WMTS'')
+          AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
+          GROUP BY org, user_name, service'::text)
+      AS (
+          siteid integer,
+          org character varying(255),
+          user_name character varying(255),
+          service character varying(5),
+          hits bigint,
+          layers_nb bigint,
+          first_hit character varying(8),
+          last_hit character varying(8)
+          )
+  );"""
+  #print("")
+  #print(SQLinsert)
+  #print("")
+
+  SQLVerif = "SELECT COUNT(*) AS count FROM " + DB_stats_schema + ".ogc_services_stats_live ;"
+  #print(SQLVerif)
+
+  # connection à la base
+  try:
+    # connexion à la base, si plante, on sort
+    conn = psycopg2.connect(DB_stats_ConnString)
+    cursor = conn.cursor()
+  except:
+    print( "connexion à la base impossible")
+
+  try:
+    # on lance la requêt INSERT
+    cursor.execute(SQLinsert)
+    conn.commit()
+
+    try:
+      # puis on lance la requête pour vérifier le nb d'enregistrements créés
+      cursor.execute(SQLVerif)
+      result = cursor.fetchone()
+      NbRecordsInserted = result[0]
+      print( "  nombre d'enregistrements insérés : " + str(NbRecordsInserted) )
+
+    except:
+      print( "  impossible d'exécuter la requête VERIF")
+
+  except Exception as err:
+    print( "  impossible d'exécuter la requête INSERT")
+    print( "  PostgreSQL error code : " + err.pgcode )
+
+  try:
+    cursor.close()
+    conn.close()
+  except:
+    print("")
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 def DailyUpdate():
 
   # on va lire la table  ogc_services_log_y[YYY]m[M]  qui correspond à la date demandée
@@ -111,7 +209,9 @@ def DailyUpdate():
           monthyear character varying(10)
           )
   );"""
+  #print("")
   #print(SQLinsert)
+  #print("")
 
   SQLVerif = """SELECT COUNT(*) AS count
   FROM """ + DB_stats_schema + """.ogc_services_stats_daily
@@ -368,7 +468,14 @@ def Vacuum() :
   else:
      print("  pas de vacuum à faire")
 
+
+
+
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 
 
 def main():
@@ -470,7 +577,8 @@ def main():
   print( "date wich follow : " + DateToFollow )
 
   # et on lance le traitement des logs pour le jour demandé
-  DailyUpdate()
+  LiveUpdate()
+  #DailyUpdate()
   #WeeklyUpdate()
   #MonthlyUpdate()
   #Vacuum()

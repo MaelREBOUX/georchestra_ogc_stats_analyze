@@ -151,3 +151,21 @@ CREATE INDEX ogc_services_stats_yearly_org_idx
 
 CREATE INDEX ogc_services_stats_yearly_layer_idx
   ON statistiques.ogc_services_stats_yearly USING btree (layer);
+
+  
+-- Table live
+
+CREATE TABLE statistiques.ogc_services_stats_live
+(
+  siteid integer,
+  org character varying(255),
+  user_name character varying(255),
+  service character varying(5),
+  hits bigint,
+  layers_nb bigint,
+  first_hit character varying(8),
+  last_hit character varying(8),
+  CONSTRAINT ogc_services_stats_live_pk PRIMARY KEY (siteid, org, user_name, service)
+);
+  
+  
