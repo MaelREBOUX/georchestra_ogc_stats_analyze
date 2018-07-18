@@ -58,6 +58,7 @@ def LiveUpdate() :
   status = False
 
   # trouver la table à attaquer
+  DateToTreat = date.today().strftime('%Y-%m-%d')
   ogc_table = "ogc_services_log_y" + DateToTreat[0:4] + "m" + re.sub('^0+', '', DateToTreat[5:7])
   print ( "  table à traiter : " + DB_georchestra_schema + "." + ogc_table )
 
@@ -491,10 +492,14 @@ def main():
 
   parser = argparse.ArgumentParser(description="""
 
-  Ce script blablabla [TODO]
+  Ce script traite les données de la table ogc_services_log du mois courant afin de consolider des statistiques selon 3 plages de temps :
+    - stats au jour
+    - stats à la semaine
+    - stats au mois
 
-  Si aucune date n'est fournie alors ce sera la date du jour qui sera prise en compte.
-  Concrètement : les logs de la veille.
+  Si aucune date n'est fournie alors le script traitera les logs de la veille. Usage typique : lancé par un cron pour traiter les stats de la veille.
+
+  Le mode 'live' permet de connaître l'utilisation des services sur le jour courant. A exécuter toutes les n minutes.
 
   Exemple : update_ogc_stats.py -site 1 -date 2018-05-28""", formatter_class=RawTextHelpFormatter)
 
@@ -502,91 +507,77 @@ def main():
   # obligatoire
   parser.add_argument("-site", help="""Identifiant du site à traiter (obligatoire).""")
 
+  # mode live
+  # optionnel
+  parser.add_argument("-live", help="""Mode live : permet de connaître l'utilisation des services sur le jour courant (optionnel).""")
+
   # date
   # Par défaut= date du jour -1 si pas spécifié
   # optionnel
-  parser.add_argument("-date", help="""Date à traiter au format 'YYYY-MM-DD' (optionnel)""")
+  parser.add_argument("-date", help="""Permet de forcer le traitement d'une date au format 'YYYY-MM-DD' (optionnel)""")
 
   # debug
   #print( 'Number of arguments:', len(sys.argv), 'arguments.' )
   #print( 'Argument List:', str(sys.argv) )
 
-  # test surt le nb d'arguments passés. On attend 3 au minimum
-  if (len(sys.argv) < 3) :
-    print("\n Erreur : pas assez d'arguments\n")
-    parser.print_help()
-    sys.exit()
 
-  # on récupère les arguments passés
-  args = parser.parse_args(sys.argv[1:])
+  # test des variables passées
+  test_siteid = False
+  test_live = False
+  test_date = False
 
-  # on fait des tests
-  # sur le site
-  if sys.argv[1] != "-site" :
+  # le site : obligatoire
+  if ('-site' in sys.argv):
+    # on mémorise le siteid
+    siteid = str(sys.argv[2])
+    print('identifiant de site = '+ siteid)
+    # TODO tester si integer
+    test_siteid = True
+    pass
+  else:
     print("\n Erreur : identifiant de site obligatoire\n")
     parser.print_help()
     sys.exit()
+    return
+
+  # le mode live
+  if ('-live' in sys.argv):
+    print( "mode live !" )
+    test_live = True
+    # le mode live est assez autonome donc on le lance directement
+    LiveUpdate()
+
+  # si pas mode live -> mode normal
   else:
-    # on mémorise le siteid
-    siteid = str(sys.argv[2])
-    # tester la valeur passée
-    #print( "TODO : tester la valeur site" )
+    print( "mode normal")
 
-  # la date si fournie
-  # test si un argument date a été fourni
-  if (len(sys.argv) == 5) :
-    # on a quelquechose
-    DateArg = str(sys.argv[4])
-    # on force pur le moment, sans contrôler
-    DateToTreat = DateArg
+    # on teste si une date de forçage a été fournie
+    if ('-date' in sys.argv):
+      # on force pur le moment, sans contrôler
+      DateArg = str(sys.argv[4])
+      DateToTreat = DateArg
+      print( "date forcée : " + DateArg)
 
-    #print(Datearg)
+    # pas de date forcée = on prend la date de hier
+    else:
+      yesterday = date.today() - timedelta(1)
+      DateToTreat = yesterday.strftime('%Y-%m-%d')
+      print( "date de hier : " + DateToTreat)
 
-    # on teste le format de date rentrée
-    #if str(sys.argv[4]) == DateArg.strftime('%Y-%m-%d') :
-    #    print("format de date ok")
-    #    DateToTreat = str(sys.argv[4])
-    #else :
-    #    print("Mauvais format de date")
-    #    sys.exit()
+    # on déduit la date du jour suivant, pour les intervalles dans les requêtes SQL
+    ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
+    nextday = ConvDateToTreat + timedelta(1)
+    DateToFollow = nextday.strftime('%Y-%m-%d')
+    print( "date du jour suivant : " + DateToFollow )
 
-  else:
-    # pas de date : donc on prend la date du jour courant par défaut
-    yesterday = date.today() - timedelta(1)
-    DateToTreat = yesterday.strftime('%Y-%m-%d')
+    # et on lance la maj des stats
+    DailyUpdate()
 
-
-  # on déduit la date du jour suivant
-  ConvDateToTreat = datetime.strptime(DateToTreat, '%Y-%m-%d')
-  nextday = ConvDateToTreat + timedelta(1)
-  DateToFollow = nextday.strftime('%Y-%m-%d')
-
-
-  # tout est OK : on peut traiter les logs
-
-  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  # debug
-  #siteid = 1
-  #DateToTreat = 2018-05-03
-
-
-  # for debug
-  print('\n===========================================================')
-  print( "date to query : " + DateToTreat)
-  print( "date wich follow : " + DateToFollow )
-
-  # et on lance le traitement des logs pour le jour demandé
-  LiveUpdate()
-  #DailyUpdate()
-  #WeeklyUpdate()
-  #MonthlyUpdate()
-  #Vacuum()
 
   print( "")
   print( "  F I N")
 
-  pass
+  return
 
 if __name__ == '__main__':
     main()
