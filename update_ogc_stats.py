@@ -22,7 +22,7 @@ import re
 # lecture du fichier de configuration qui contient les infos de connection
 # à la base geOrchestra et à la base dans laquelle on écrit les stats consolidées
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('./config.ini')
 
 # connexion DBLINK à la base georchestra
 DB_georchestra_ConnString = "host="+ config.get('DB_georchestra', 'host') +" dbname="+ config.get('DB_georchestra', 'db') +" user="+ config.get('DB_georchestra', 'user') +" password="+ config.get('DB_georchestra', 'passwd')
