@@ -3,7 +3,8 @@
 CREATE TABLE statistiques.ogc_services_sites
 (
   siteid integer,
-  sitename text
+  sitename text,
+  CONSTRAINT ogc_services_sites_pk PRIMARY KEY (siteid)
 );
 
 
