@@ -116,7 +116,11 @@ def LiveUpdate() :
     print( "connexion à la base impossible")
 
   try:
-    # on lance la requêt INSERT
+    # on commence par faire un TRUNCATE
+    cursor.execute( "TRUNCATE TABLE " + DB_stats_schema + ".ogc_services_stats_live ;" )
+    conn.commit()
+
+    # puis on lance la requêt INSERT
     cursor.execute(SQLinsert)
     conn.commit()
 
