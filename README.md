@@ -23,6 +23,21 @@ Les temps d'exécution dépendent de la volumétrie des tables à lire.
 - Python > 3.4
 - modules python : psycopg2 (2.7.4)
 
+## Utilisation
+
+### mode live
+
+Pour connaître l'utilisation de la plate-forme du jour courant : ``python ./update_ogc_stats.py -site 1 -live``
+
+### mode standard
+
+Pour traiter les données des tables ogc_services_log pour une date.
+
+Pour la date courante -> les données de la veille : ``python ./update_ogc_stats.py -site 1``
+
+Pour une date précise : ``python ./update_ogc_stats.py -site 1 -date 2018-05-28``
+
+
 
 ## Installation sur Debian 9
 

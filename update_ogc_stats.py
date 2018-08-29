@@ -1,13 +1,26 @@
 # coding: utf8
 #-------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:
 #
-# Author:      e.rouvin
+#  Ce script permet de créer des statistiques sur les services OGC de geOrchestra.
+#
+#  Le script traite les données de la table ogc_services_log du mois courant afin de consolider des statistiques selon 3 plages de temps :
+#    stats au jour
+#    stats à la semaine
+#    stats au mois
+#    + un mode 'live'
+#
+#
+# Auteurs :
+#   Maël REBOUX   m.reboux@rennesmetropole.fr
+#   Étienne ROUVIN  e.rouvin@rennesmetropole.fr
 #
 # Created:     05/06/2018
-# Copyright:   (c) e.rouvin 2018
-# Licence:     <your licence>
+#
+# Licence:     GPL 3
+#
+# Requirements
+#   python 3.4 >
+#   psycopg2
 #-------------------------------------------------------------------------------
 
 import os
