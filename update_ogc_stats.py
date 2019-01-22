@@ -83,7 +83,11 @@ def LiveUpdate() :
   (
     SELECT
       siteid,
-      org,
+      CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
+		    WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
+		    WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
+		    ELSE org
+      END AS org,
       user_name,
       service,
       hits,
@@ -203,7 +207,12 @@ def DailyUpdate():
         'SELECT
           """ + siteid + """ AS siteid,
           ''""" + DateToTreat + """''::date AS date,
-          org, user_name, service, request, layer,
+          CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
+		        WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
+		        WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
+		        ELSE org
+          END AS org,
+          user_name, service, request, layer,
           COUNT(*) AS count,
           EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)::integer AS week,
           EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)::integer AS month,
@@ -321,7 +330,13 @@ def WeeklyUpdate():
   SQLinsertW = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_weekly
   (
     SELECT
-      siteid, org, user_name, service, request, layer,
+      siteid,
+      CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
+		    WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
+		    WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
+		    ELSE org
+      END AS org,
+      user_name, service, request, layer,
       SUM(count) AS count,
       week, year, weekyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
@@ -408,7 +423,13 @@ def MonthlyUpdate():
   SQLinsertM = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_monthly
   (
     SELECT
-      siteid, org, user_name, service, request, layer,
+      siteid,
+      CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
+		    WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
+		    WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
+		    ELSE org
+      END AS org,
+      user_name, service, request, layer,
       SUM(count) AS count,
       month, year, monthyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
