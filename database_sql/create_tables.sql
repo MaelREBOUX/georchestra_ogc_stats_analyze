@@ -1,4 +1,12 @@
-﻿-- Table site ( 1 = intranet; 2 = extranet)
+﻿
+-- CREATE DATABASE sysig WITH OWNER = postgres ;
+
+-- CREATE SCHEMA statistiques AUTHORIZATION postgres;
+-- CREATE EXTENSION dblink SCHEMA public ;
+-- GRANT ALL ON SCHEMA statistiques TO geocarto;
+
+
+-- Table site ( 1 = intranet; 2 = extranet)
 
 CREATE TABLE statistiques.ogc_services_sites
 (
