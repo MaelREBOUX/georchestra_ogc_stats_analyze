@@ -207,9 +207,9 @@ def DailyUpdate():
         'SELECT
           """ + siteid + """ AS siteid,
           ''""" + DateToTreat + """''::date AS date,
-          CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
-		        WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
-		        WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
+          CASE WHEN org = ''Rennes_M_tropole'' THEN ''Rennes Métropole''
+		        WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
+		        WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
 		        ELSE org
           END AS org,
           user_name, service, request, layer,
