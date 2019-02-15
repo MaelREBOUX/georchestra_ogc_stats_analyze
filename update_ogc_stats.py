@@ -83,11 +83,7 @@ def LiveUpdate() :
   (
     SELECT
       siteid,
-      CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
-		    WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
-		    WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
-		    ELSE org
-      END AS org,
+      org,
       user_name,
       service,
       hits,
@@ -98,7 +94,12 @@ def LiveUpdate() :
       dblink('""" + DB_georchestra_ConnString + """'::text,
         'SELECT
           """ + siteid + """ AS siteid,
-          org, user_name, service,
+          CASE WHEN org = ''Rennes_M_tropole'' THEN ''Rennes Métropole''
+            WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
+            WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
+            ELSE org
+          END AS org,
+          user_name, service,
           COUNT(service) AS hits,
           COUNT(DISTINCT(layer)) AS layers_nb,
           RIGHT(MIN(date)::text,8)::varchar AS first_hit,
@@ -108,7 +109,12 @@ def LiveUpdate() :
           date > CURRENT_DATE
           AND service IN (''WMS'', ''WMTS'')
           AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
-          GROUP BY org, user_name, service'::text)
+          GROUP BY
+            CASE WHEN org = ''Rennes_M_tropole'' THEN ''Rennes Métropole''
+              WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
+              WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
+              ELSE org
+            END , user_name, service'::text)
       AS (
           siteid integer,
           org character varying(255),
@@ -222,7 +228,12 @@ def DailyUpdate():
         FROM """ + DB_georchestra_schema + "." + ogc_table + """
         WHERE date > ''""" + DateToTreat + """''::date AND date < ''""" + DateToFollow + """''::date
         AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
-        GROUP BY org, user_name, service, request, layer'::text)
+        GROUP BY
+            CASE WHEN org = ''Rennes_M_tropole'' THEN ''Rennes Métropole''
+              WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
+              WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
+              ELSE org
+            END , user_name, service'::text)
       AS (
           siteid integer,
           date date,
