@@ -21,6 +21,13 @@ INSERT INTO ogcstatistics.ogc_services_stats_daily
   FROM ogcstatistics.ogc_services_log_y2019m2
   WHERE date > '2019-02-05'::date AND date < '2019-02-06'::date
   AND user_name NOT IN ('acces.sig', 'admsig', 'c2c-monitoring', 'geoserver_privileged_user', 'intranet', 'ldapsig')
-  GROUP BY org, user_name, service, request, layer, roles
+  GROUP BY
+  (
+    CASE WHEN org = 'Rennes_M_tropole' THEN 'Rennes Métropole'
+      WHEN org = 'Ville_de_Rennes' THEN 'Ville de Rennes'
+      WHEN org = 'Ville_de_rennes' THEN 'Ville de Rennes'
+      ELSE org
+    END
+  ), user_name, service, request, layer
 );
 

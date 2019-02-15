@@ -233,7 +233,7 @@ def DailyUpdate():
               WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
               WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
               ELSE org
-            END , user_name, service'::text)
+            END , user_name, service, request, layer'::text)
       AS (
           siteid integer,
           date date,
