@@ -84,7 +84,7 @@ def LiveUpdate() :
     SELECT
       siteid,
       org,
-      user_name,
+      lower(user_name),
       service,
       hits,
       layers_nb,
@@ -99,7 +99,7 @@ def LiveUpdate() :
             WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
             ELSE org
           END AS org,
-          user_name, service,
+          lower(user_name), service,
           COUNT(service) AS hits,
           COUNT(DISTINCT(layer)) AS layers_nb,
           RIGHT(MIN(date)::text,8)::varchar AS first_hit,
@@ -108,17 +108,17 @@ def LiveUpdate() :
         WHERE
           date > CURRENT_DATE
           AND service IN (''WMS'', ''WMTS'')
-          AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
+          AND lower(user_name) NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
           GROUP BY
             CASE WHEN org = ''Rennes_M_tropole'' THEN ''Rennes Métropole''
               WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
               WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
               ELSE org
-            END , user_name, service'::text)
+            END , lower(user_name), service'::text)
       AS (
           siteid integer,
           org character varying(255),
-          user_name character varying(255),
+          lower(user_name) character varying(255),
           service character varying(5),
           hits bigint,
           layers_nb bigint,
@@ -198,7 +198,7 @@ def DailyUpdate():
       siteid,
       date,
       org,
-      user_name,
+      lower(user_name),
       service,
       request,
       layer,
@@ -218,7 +218,7 @@ def DailyUpdate():
 		        WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
 		        ELSE org
           END AS org,
-          user_name, service, request, layer,
+          lower(user_name), service, request, layer,
           COUNT(*) AS count,
           EXTRACT(WEEK FROM ''""" + DateToTreat + """''::date)::integer AS week,
           EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)::integer AS month,
@@ -227,18 +227,18 @@ def DailyUpdate():
           CONCAT(EXTRACT(YEAR FROM ''""" + DateToTreat + """''::date), ''-'', LPAD(EXTRACT(MONTH FROM ''""" + DateToTreat + """''::date)::text, 2, ''0'')) AS monthyear
         FROM """ + DB_georchestra_schema + "." + ogc_table + """
         WHERE date > ''""" + DateToTreat + """''::date AND date < ''""" + DateToFollow + """''::date
-        AND user_name NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
+        AND lower(user_name) NOT IN (''acces.sig'', ''admsig'', ''c2c-monitoring'', ''geoserver_privileged_user'', ''intranet'', ''ldapsig'')
         GROUP BY
             CASE WHEN org = ''Rennes_M_tropole'' THEN ''Rennes Métropole''
               WHEN org = ''Ville_de_Rennes'' THEN ''Ville de Rennes''
               WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
               ELSE org
-            END , user_name, service, request, layer'::text)
+            END , lower(user_name), service, request, layer'::text)
       AS (
           siteid integer,
           date date,
           org character varying(255),
-          user_name character varying(255),
+          lower(user_name) character varying(255),
           service character varying(5),
           request character varying(20),
           layer character varying(255),
@@ -341,12 +341,12 @@ def WeeklyUpdate():
   SQLinsertW = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_weekly
   (
     SELECT
-      siteid, org, user_name, service, request, layer,
+      siteid, org, lower(user_name), service, request, layer,
       SUM(count) AS count,
       week, year, weekyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
     WHERE weekyear = '""" + WeekYear + """' AND siteid = """ + siteid + """
-    GROUP BY siteid, org, user_name, service, request, layer, week, year, weekyear
+    GROUP BY siteid, org, lower(user_name), service, request, layer, week, year, weekyear
   );"""
   #print(SQLinsertW)
 
@@ -428,12 +428,12 @@ def MonthlyUpdate():
   SQLinsertM = """INSERT INTO """ + DB_stats_schema + """.ogc_services_stats_monthly
   (
     SELECT
-      siteid, org, user_name, service, request, layer,
+      siteid, org, lower(user_name), service, request, layer,
       SUM(count) AS count,
       month, year, monthyear
     FROM """ + DB_stats_schema + """.ogc_services_stats_daily
     WHERE monthyear = '""" + MonthYear + """' AND siteid = """ + siteid +"""
-    GROUP BY siteid, org, user_name, service, request, layer, month, year, monthyear
+    GROUP BY siteid, org, lower(user_name), service, request, layer, month, year, monthyear
   );"""
   #print(SQLinsertM)
 
