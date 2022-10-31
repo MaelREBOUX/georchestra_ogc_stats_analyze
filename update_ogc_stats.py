@@ -84,7 +84,7 @@ def LiveUpdate() :
     SELECT
       siteid,
       org,
-      lower(user_name),
+      user_name,
       service,
       hits,
       layers_nb,
@@ -99,7 +99,7 @@ def LiveUpdate() :
             WHEN org = ''Ville_de_rennes'' THEN ''Ville de Rennes''
             ELSE org
           END AS org,
-          lower(user_name), service,
+          lower(user_name) as user_name, service,
           COUNT(service) AS hits,
           COUNT(DISTINCT(layer)) AS layers_nb,
           RIGHT(MIN(date)::text,8)::varchar AS first_hit,
@@ -118,7 +118,7 @@ def LiveUpdate() :
       AS (
           siteid integer,
           org character varying(255),
-          lower(user_name) character varying(255),
+          user_name character varying(255),
           service character varying(5),
           hits bigint,
           layers_nb bigint,
@@ -126,9 +126,9 @@ def LiveUpdate() :
           last_hit character varying(8)
           )
   );"""
-  #print("")
-  #print(SQLinsert)
-  #print("")
+  # print("")
+  # print(SQLinsert)
+  # print("")
 
   SQLVerif = "SELECT COUNT(*) AS count FROM " + DB_stats_schema + ".ogc_services_stats_live ;"
   #print(SQLVerif)
@@ -198,7 +198,7 @@ def DailyUpdate():
       siteid,
       date,
       org,
-      lower(user_name),
+      user_name,
       service,
       request,
       layer,
@@ -238,7 +238,7 @@ def DailyUpdate():
           siteid integer,
           date date,
           org character varying(255),
-          lower(user_name) character varying(255),
+          user_name character varying(255),
           service character varying(5),
           request character varying(20),
           layer character varying(255),
@@ -250,9 +250,9 @@ def DailyUpdate():
           monthyear character varying(10)
           )
   );"""
-  #print("")
-  #print(SQLinsert)
-  #print("")
+  # print("")
+  # print(SQLinsert)
+  # print("")
 
   SQLVerif = """SELECT COUNT(*) AS count
   FROM """ + DB_stats_schema + """.ogc_services_stats_daily
