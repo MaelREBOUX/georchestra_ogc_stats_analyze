@@ -1,5 +1,7 @@
 # georchestra_ogc_stats_analyze
 
+## Description
+
 Cet outil permet de créer des statistiques sur les services OGC de geOrchestra.
 
 Le script traite les données de la table ogc_services_log du mois courant afin de consolider des statistiques selon 3 plages de temps :
@@ -23,6 +25,48 @@ Les temps d'exécution dépendent de la volumétrie des tables à lire.
 - Python > 3.4
 - modules python : psycopg2 (2.7.4)
 
+
+## Installation
+
+Cloner ce dépôt.
+
+Création de la session virtuelle : ouvrir une console git bash dans le répertoire.
+
+On crée la session virtuelle (1 seule fois).
+
+```bash
+python -m venv venv
+source venv/Scripts/Activate
+
+which python
+python --version
+```
+
+Puis on installe les modules Python
+
+```bash
+python -m pip --trusted-host pypi.org install modules/*.whl
+```
+
+Vérification :
+
+```bash
+python -m pip --trusted-host pypi.org list
+Package      Version
+------------ -------
+pip        22.2.2
+psycopg2   2.9.2
+setuptools 58.1.0
+```
+
+
+Ne pas oublier de sortir de la session virtuelle Python :
+
+```bash
+deactivate
+```
+
+
 ## Utilisation
 
 ### mode live
@@ -37,28 +81,6 @@ Pour la date courante -> les données de la veille : ``python ./update_ogc_stats
 
 Pour une date précise : ``python ./update_ogc_stats.py -site 1 -date 2018-05-28``
 
-
-
-## Installation sur Debian 9
-
-TODO
-
-## Installation sur Debian 8
-
-Testé sur Debian 8.11
-
-
-    # pyhton 3.4
-	sudo apt-get install python3
-	python3 --version
-	
-	# pip
-	sudo apt-get install python3-pip
-	sudo python3 -m pip --version
-	pip 1.5.6 from /usr/lib/python3/dist-packages (python 3.4)
-
-	# psycopg2
-	sudo apt-get install python3-psycopg2
 
 
 ## Cron
