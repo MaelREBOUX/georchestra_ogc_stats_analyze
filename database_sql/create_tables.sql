@@ -8,11 +8,25 @@
 
 -- Table site ( 1 = intranet; 2 = extranet)
 
+DROP TABLE IF EXISTS statistiques.ogc_services_sites ;
 CREATE TABLE statistiques.ogc_services_sites
 (
   siteid integer,
   sitename text,
   CONSTRAINT ogc_services_sites_pk PRIMARY KEY (siteid)
+);
+
+
+-- table des login des comptes utilisateurs
+
+DROP TABLE IF EXISTS statistiques.ogc_services_users ;
+CREATE TABLE statistiques.ogc_services_users (
+	siteid int4 NOT NULL,
+	org text NULL,
+	user_name text NULL,
+	first_name text NULL,
+	last_name text NULL,
+	mail text NULL
 );
 
 
@@ -23,6 +37,7 @@ CREATE TABLE statistiques.ogc_services_sites
 
 -- Table jour
 
+DROP TABLE IF EXISTS statistiques.ogc_services_stats_daily ;
 CREATE TABLE statistiques.ogc_services_stats_daily
 (
   siteid integer,
@@ -63,6 +78,7 @@ CREATE INDEX ogc_services_stats_daily_layer_idx
 
 --Table semaine
 
+DROP TABLE IF EXISTS statistiques.ogc_services_stats_weekly ;
 CREATE TABLE statistiques.ogc_services_stats_weekly
 (
   siteid integer,
@@ -97,7 +113,7 @@ CREATE INDEX ogc_services_stats_weekly_layer_idx
 
 --Table mois
 
-
+DROP TABLE IF EXISTS statistiques.ogc_services_stats_monthly ;
 CREATE TABLE statistiques.ogc_services_stats_monthly
 (
   siteid integer,
@@ -132,7 +148,7 @@ CREATE INDEX ogc_services_stats_monthly_layer_idx
 
 -- Table année
 
-
+DROP TABLE IF EXISTS statistiques.ogc_services_stats_yearly ;
 CREATE TABLE statistiques.ogc_services_stats_yearly
 (
   siteid integer,
@@ -164,6 +180,7 @@ CREATE INDEX ogc_services_stats_yearly_layer_idx
   
 -- Table live
 
+DROP TABLE IF EXISTS statistiques.ogc_services_stats_live ;
 CREATE TABLE statistiques.ogc_services_stats_live
 (
   siteid integer,
