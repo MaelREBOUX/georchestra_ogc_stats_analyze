@@ -7,9 +7,7 @@
 # exit dès que qqch se passe mal
 set -e
 
-#python_exe=/c/Program\ Files/python/3.9.9/python.exe
-
-cd /c/taches/georchestra_ogc_stats_analyze
+cd /e/taches/georchestra_ogc_stats_analyze
 
 # cette ligne permet de rediriger toutes les sorties qui suivent
 # dans un fichier de log
